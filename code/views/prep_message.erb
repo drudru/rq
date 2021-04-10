@@ -1,0 +1,86 @@
+<div id="header">
+  <h1><a href="<%= root %>">RQ</a> : <a href="<%= "#{root}q/#{q_name}" %>"><%= q_name %></a> : <%= msg_id %></h1>
+</div>
+
+<div id="sub-header">
+  <div id="message-actions">
+    <form class="inline" id="commit-message-form" method="post" action="<%= "#{root}q/#{q_name}/#{msg_id}" %>">
+      <input name="_method" type="hidden" value="commit" />
+      <button id="commit-message-button">Commit Message</button>
+    </form>
+    <form class="inline" id="delete-message-form" method="post" action="<%= "#{root}q/#{q_name}/#{msg_id}" %>">
+      <input name="_method" type="hidden" value="delete" />
+      <button id="delete-message-button">Delete Message</button>
+    </form>
+  </div>
+<%= erb :_message_summary, :locals => { :q_name => q_name, :msg_id => msg_id, :msg => msg } %>
+</div>
+
+<h3>Message Attachments</h3>
+  <div id="attachment-actions">
+    <form class="inline" method="post" enctype="multipart/form-data" action="<%= "#{root}q/#{q_name}/#{msg_id}/attach/new" %>">
+      <input id="file_up" name="filedata" type="file">
+      <input value="Upload" type="submit">
+    </form>
+  </div>
+<% msg['_attachments'] ||= {} %>
+<% if msg['_attachments'].size > 0 %>
+<table id="attachments" class="">
+<thead>
+<tr>
+  <th class="">
+    Name
+  </th>
+  <th>
+    MD5
+  </th>
+  <th>
+    Size
+  </th>
+  <th>
+  </th>
+</tr>
+</thead>
+<tbody>
+<%  msg['_attachments'].keys.sort.each do |key| %>
+<tr>
+  <td class="">
+    <a href="<%= "#{root}q/#{q_name}/#{msg_id}/attach/#{key}" %>"><%= key %></a>
+  </td>
+  <td>
+    <%= msg['_attachments'][key]['md5'] %></a>
+  </td>
+  <td>
+    <%= msg['_attachments'][key]['size'] %></a>
+  </td>
+  <td>
+    <form class="inline" id="delete-attach-form" method="post" action="<%= "#{root}q/#{q_name}/#{msg_id}/attach/#{key}" %>">
+      <input name="_method" type="hidden" value="delete" />
+      <button id="delete-attach-button">Delete</button>
+    </form>
+  </td>
+</tr>
+<% end %>
+</tbody>
+</table>
+<% else %>
+  <p>No attachments.</p>
+<% end %>
+
+<script>
+  var commitMessageForm = document.getElementById('commit-message-form');
+  commitMessageForm.addEventListener('submit', function (e) {
+    var commitMessageButton = document.getElementById('commit-message-button');
+    commitMessageButton.disabled = true;
+  });
+  var deleteMessageForm = document.getElementById('delete-message-form');
+  deleteMessageForm.addEventListener('submit', function (e) {
+    var deleteMessageButton = document.getElementById('delete-message-button');
+    deleteMessageButton.disabled = true;
+  });
+  var deleteAttachForm = document.getElementById('delete-attach-form');
+  deleteAttachForm.addEventListener('submit', function (e) {
+    var deleteAttachButton = document.getElementById('delete-attach-button');
+    deleteAttachButton.disabled = true;
+  });
+</script>

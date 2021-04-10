@@ -1,0 +1,8 @@
+{
+  "period" : 86400,
+  "msg" :
+  {
+    "dest" : "cleaner",
+    "param1" : "ALLQUEUES"
+  }
+}

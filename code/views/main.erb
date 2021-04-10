@@ -1,0 +1,111 @@
+<div id="header">
+<% if allow_new_queue? -%>
+  <p id="new-queue"><a href="<%= root %>new_queue">New Queue</a></p>
+<% end -%>
+  <h1><a href="<%= root %>">RQ</a></h1>
+</div>
+
+<h2>Queue List</h2>
+<%
+if queuemgr.running?
+  queues = queuemgr.queues.sort
+  builtin_queues, custom_queues = [], []
+  queues.each do |q|
+    if %w{debug relay cleaner webhook rq_router}.include? q
+      builtin_queues << q
+    else
+      custom_queues << q
+    end
+  end
+-%>
+<table id="queue-list" cellspacing="0" cellpadding="5">
+  <thead>
+    <tr>
+      <th class="left-aligned">NAME</th>
+      <th>PREP</th>
+      <th>QUEUE</th>
+      <th>RUN</th>
+      <th>ERR</th>
+      <th>DONE</th>
+      <th>RELAYED</th>
+      <th>PID</th>
+      <th>UPTIME</th>
+      <th>STATUS</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="custom-queues">
+<%  custom_queues.each_with_index do |q, i| %>
+<%=   erb :_main_queue_row, :locals => {:name => q, :odd => i % 2 != 0} %>
+<%  end %>
+  </tbody>
+  <tbody id="builtin-queues">
+<%  builtin_queues.each do |q| %>
+<%=   erb :_main_queue_row, :locals => {:name => q, :odd => false} %>
+<%  end %>
+  </tbody>
+</table>
+<% end %>
+
+<h2>Timer List</h2>
+<%
+  timers = []
+  lvl = nil
+begin
+  sock = RQ::RQUNIXSocket.start_client('timers/sock')
+  spkt = SimplePC::SendPacket.send(sock, 'get_timers', nil)
+  spkt.block_io()
+  raise if spkt.state != :done
+  rpkt = SimplePC::RecvPacket.new(sock)
+  rpkt.block_io()
+  raise if rpkt.state != :done
+  if rpkt.cmd == 'ok'
+    timers = rpkt.payload
+  end
+rescue
+  lvl = $!
+end
+
+#if timers
+if lvl
+-%>
+<pre>Error: <%= lvl %></pre>
+<%
+elsif not timers.empty?
+  now = Time.now.to_i
+-%>
+<table id="timer-list" cellspacing="0" cellpadding="5">
+  <thead>
+    <tr>
+      <th class="left-aligned">NAME</th>
+      <th>DUE</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody style="background: #FEF9EE">
+  <%  timers.sort_by { |t| t[1] }.each_with_index do |timer, i| %>
+    <tr class="<%= 'odd-row' if i.odd? %>">
+      <td class="left-aligned"><%= timer[0] %></td>
+      <td><%= timer[1] - now %></td>
+      <td></td>
+<%  end %>
+  </tbody>
+</table>
+<% end -%>
+
+<div class="meta">
+<% if queuemgr.running? %>
+  <span class="green">QUEUE MGR is OPERATIONAL</span>
+  <span class="green"><%= queuemgr.ping %></span>
+  <span class="green"><%= queuemgr.read_pid %></span>
+  <span>uptime <%= queuemgr.uptime %> seconds</span> |
+  <% version = queuemgr.version %>
+  <% if version == RQ_VER %>
+    <span>server: <strong>v<%= version %></strong></span>
+  <% else %>
+    <span class="red">server: <strong>v<%= version %></strong> != web: <strong>v<%= RQ_VER %></strong></span>
+  <% end %>
+<% else %>
+  <span class="red">QUEUE MGR is DOWN</span>
+<% end %>
+</div>

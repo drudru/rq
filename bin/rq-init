@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+#
+# THIS SCRIPT IS DESIGNED TO BE STARTED BY A
+# DAEMONTOOLS, RUNIT, S6 'run' SCRIPT
+#
+
+$: << File.expand_path('..', File.dirname(__FILE__))
+
+
+require 'vendor/environment'
+require 'code/queuemgr'
+
+require 'logger'
+$log = Logger.new(STDERR)
+$log.level = Logger::INFO
+$log.progname = $0
+
+RQ::QueueMgr.new.run!
+

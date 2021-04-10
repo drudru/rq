@@ -1,0 +1,26 @@
+<div style="float: right">
+        <form class="inline inrow" method="post" action="<%= "#{root}q/#{name}/adminoper" %>">
+          <input type="hidden" name="back" value="<%= request.path  %>" />
+          <%- if status == 'PAUSE' -%>
+            <button id="resume-queue" name="resume" value="resume" <%= 'disabled="disabled"' if status == 'DOWN' %>>Resume</button>
+          <%- else -%>
+            <button id="pause-queue" name="pause" value="pause" <%= 'disabled="disabled"' if status == 'DOWN' %>>Pause</button>
+          <%- end -%>
+          <%- if status == 'DOWN' -%>
+            <button id="up-queue" name="up" value="up">Up</button>
+          <%- else -%>
+            <button id="down-queue" name="down" value="down">Down</button>
+          <%- end -%>
+        </form>
+        <form class="inline inrow" method="post" action="<%= "#{root}q/#{name}/restart" %>">
+          <input type="hidden" name="back" value="<%= request.path  %>" />
+          <button id="restart-queue" name="restart" value="restart">Restart</button>
+        </form>
+        <form class="inline inrow" method="post" action="<%= "#{root}q/#{name}/ack_errs" %>">
+          <input type="hidden" name="back" value="<%= request.path  %>" />
+          <button id="ack-errs-queue" name="ack_errs" value="ack_errs" style="width: 7em">Ack Errors</button>
+        </form>
+        <form class="inline inrow" method="get" action="<%= "#{root}q/#{name}" %>">
+          <input type="text" name="filter" placeholder="Search..." value="" width="40" />
+        </form>
+</div>

@@ -1,0 +1,53 @@
+<div id="header">
+  <h1><a href="<%= root %>">RQ</a> : <a href="<%= "#{root}q/#{q_name}" %>"><%= q_name %></a> : <%= msg_id %></h1>
+</div>
+
+<div id="sub-header">
+  <div id="message-actions">
+    <form class="inline" id="clone-form" method="post" action="<%= "#{root}q/#{q_name}/#{msg_id}/clone" %>">
+      <button id="clone-button">Clone message</button>
+    </form>
+    <form class="inline" id="run-form" method="post" action="<%= "#{root}q/#{q_name}/#{msg_id}/run_now" %>">
+      <button id="run-button">Run message (risky)</button>
+    </form>
+  </div>
+
+<%= erb :_message_summary, :locals => { :q_name => q_name, :msg_id => msg_id, :msg => msg } %>
+</div>
+
+<h3>Message Attachments</h3>
+<% msg['_attachments'] ||= {} %>
+<% if msg['_attachments'].size > 0 %>
+<ul>
+<%  msg['_attachments'].keys.sort.each do |key| %>
+<li>
+  <span class="">
+    <a href="<%= "#{root}q/#{q_name}/#{msg_id}/attach/#{key}" %>"><%= key %></a>
+  </span>
+</li>
+<% end %>
+</ul>
+<% else %>
+  <p>No attachments.</p>
+<% end %>
+
+<h3>Log Tail Window
+[ <a href="<%= "#{root}q/#{q_name}/#{msg_id}/log/stdio.log" %>">Raw log</a> ]
+[ <a href="<%= "#{root}q/#{q_name}/#{msg_id}/tailviewlog/stdio.log" %>">Full tail</a> ]
+</h3>
+<iframe id="log" src="<%= "#{root}q/#{q_name}/#{msg_id}/tailviewlog/stdio.log" %>"
+  width="100%" height="400" frameborder="0">
+</iframe>
+<script>
+  var cloneForm = document.getElementById('clone-form');
+  cloneForm.addEventListener('submit', function (e) {
+    var cloneButton = document.getElementById('clone-button');
+    cloneButton.disabled = true;
+  });
+
+  var runForm = document.getElementById('run-form');
+  runForm.addEventListener('submit', function (e) {
+    var runButton = document.getElementById('run-button');
+    runButton.disabled = true;
+  });
+</script>

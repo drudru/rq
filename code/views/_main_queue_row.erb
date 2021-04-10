@@ -1,0 +1,48 @@
+    <tr class="<%= 'odd-row' if odd %>">
+      <td class="left-aligned"><a href="<%= "#{root}q/#{name}" %>"><%= name %></a></td>
+<% begin
+    qc = get_queueclient(name)
+    raise unless qc.running?
+    status = qc.status
+    fields = ['prep', 'que', 'run', 'err', 'done', 'relayed']
+-%>
+<%  if status != 'DOWN' -%>
+<%    numbers = qc.num_messages -%>
+<%    fields.each do |fld| -%>
+      <%=
+          ab = [ fld, numbers[fld] ]
+          cls = 'none'
+          if ab[1] > 0
+            cls = 'yellow'
+            if ab[0] == 'err'
+              cls = 'red'
+            elsif ['done', 'relayed'].include? ab[0]
+              cls = 'green'
+            end
+          end
+          "<td class=\"#{cls}\">#{ab[1]}</td>"
+      -%>
+<%    end -%>
+<%  else -%>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+<%  end -%>
+      <td><%= qc.read_pid %></td>
+      <td><%= qc.uptime %></td>
+      <td style="text-align: center">
+        <span class="<%= status == 'UP' ? 'green' : 'red' %>"><%= status %></span>
+      </td>
+<% rescue -%>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td><span class="red">DOWN <%= $! %></span></td>
+<% end -%>
+      <td>
+      </td>
+    </tr>

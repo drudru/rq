@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- if defined?(name) && !name.empty? -%>
+    <title>RQ :: <%= name %></title>
+    <%- else -%>
+    <title>RQ</title>
+    <%- end -%>
+    <link rel="stylesheet" href="<%= root %>css/rq.css" type="text/css" media="screen, projection" />
+    <script>
+      var config = {
+        tail_path: "<%= tail_path %>",
+        state_path: "<%= state_path %>"
+      };
+    </script>
+    <base target="_top">
+  </head>
+  <body class="tailview">
+    <div id="filepos">
+      Lines <span id="filepos-top"></span>-<span id="filepos-bot"></span> of <span id="filepos-end"></span>
+      <br />
+      <input type="checkbox" id="filepos-tail" checked="checked" />
+      <label for="filepos-tail">Tail scroll to bottom</label>
+    </div>
+    <div id="filedata">
+      <pre id="ansitxt"></pre>
+    </div>
+    <script src="<%= root %>js/ansi_up.js"></script>
+    <script src="<%= root %>js/main.js"></script>
+  </body>
+</html>

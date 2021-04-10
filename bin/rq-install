@@ -1,0 +1,85 @@
+#!/usr/bin/env ruby
+$: << File.expand_path('..', File.dirname(__FILE__))
+
+require 'vendor/environment'
+require 'optparse'
+require 'fileutils'
+require 'json'
+require 'code/queue'
+
+require 'logger'
+$log = Logger.new(STDERR)
+$log.level = Logger::WARN
+$log.progname = $0
+
+def write_config(data, conffile='config/config.json')
+  confdir = File.dirname(conffile)
+  FileUtils.mkdir_p(confdir) if confdir
+  File.open(conffile, 'w') do |f|
+    f.puts(data.to_json)
+  end
+end
+
+def link_queue(name)
+  FileUtils.ln_sf("../default_scripts/#{name}", "scandir/#{name}") unless File.symlink?("scandir/#{name}")
+  puts "Installed queue #{name}"
+end
+
+def create_queues
+
+  FileUtils.mkdir_p('queue')
+  FileUtils.mkdir_p('scandir')
+  FileUtils.mkdir_p('timers')
+
+  link_queue('relay')
+  link_queue('debug')
+  link_queue('cleaner')
+  link_queue('rq_router')
+  link_queue('webhook')
+
+  true
+end
+
+options = {
+  :env    => 'development',
+  :host   => (Socket.gethostbyname(Socket.gethostname).first rescue 'localhost'),
+  :port   => 3333,
+  :addr   => '0.0.0.0',
+  :tmpdir => '/tmp',
+  :allow_new_queue => true,
+}
+
+OptionParser.new do |opts|
+  opts.banner = 'Usage: install [options]'
+
+  opts.on('--env ENV', 'Environment (default: development)') do |v|
+    options[:env] = v
+  end
+  opts.on('--host HOST', 'Hostname (default: fqdn or localhost)') do |v|
+    options[:host] = v
+  end
+  opts.on('--port PORT', 'Port (default: 3333)') do |v|
+    options[:port] = v
+  end
+  opts.on('--addr ADDR', 'Listen (default: 0.0.0.0)') do |v|
+    options[:addr] = v
+  end
+  opts.on('--tmpdir DIR', 'Temporary directory (default: /tmp)') do |v|
+    options[:tmpdir] = v
+  end
+  opts.on('--[no-]allow-new-queue', 'Allow new queues from the web UI (default: true)') do |v|
+    options[:allow_new_queue] = v
+  end
+  opts.on('--force', 'Force install') do |v|
+    options[:force] = v
+  end
+end.parse!
+
+if !options.delete(:force) && File.exists?('config/config.json')
+  puts 'Already installed'
+  exit 1
+end
+
+write_config(options)
+
+create_queues
