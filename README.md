@@ -6,7 +6,7 @@ It is designed to run on every machine in your distributed system.
 Think of it as another one of those small, but important services (like crond).
 
 RQ also has a simple periodic timer process that will inject a predefined
-message into a queue. As a result, it is a good replacement for crond or atd.
+message into a queue.
 
 RQ uses directories and json text files as its database.
 As a result, it is easy to understand and debug.
