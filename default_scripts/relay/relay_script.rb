@@ -15,6 +15,7 @@ def log(mesg)
   $stdout.flush
 end
 
+Dir.chdir  ENV['RQ_MSG_DIR']
 log(Dir.pwd.inspect)
 
 # Setup a global binding so the GC doesn't close the file
