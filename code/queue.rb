@@ -309,19 +309,41 @@ module RQ
           parent_rd.close
           parent_wr.close
 
+          anFd = IO.for_fd(child_rd_fd)
+          flags = anFd.fcntl(Fcntl::F_GETFL, 0)
+          $log.debug("3FLAGS for child_rd : #{flags.to_s(16)}")
+
           #... the pipe fd will get closed on exec
 
           # child_wr
           IO.for_fd(3).close rescue nil
           fd = IO.for_fd(child_wr_fd).fcntl(Fcntl::F_DUPFD, 3)
-          $log.warn("Error duping fd for 3 - got #{fd}") unless fd == 3
+          $log.error("Error duping fd for 3 - got #{fd}") unless fd == 3
           IO.for_fd(child_wr_fd).close rescue nil
+
+          # Turn off nonblocking (Ruby 3 turns it on??)
+          fd = IO.for_fd(3)
+          flags = fd.fcntl(Fcntl::F_GETFL, 0)
+          if flags & Fcntl::O_NONBLOCK
+            flags = flags ^ Fcntl::O_NONBLOCK
+            fd.fcntl(Fcntl::F_SETFL, flags)
+          end
+
 
           # child_rd
           IO.for_fd(4).close rescue nil
           fd = IO.for_fd(child_rd_fd).fcntl(Fcntl::F_DUPFD, 4)
-          $log.warn("Error duping fd for 4 - got #{fd}") unless fd == 4
+          $log.error("Error duping fd for 4 - got #{fd}") unless fd == 4
           IO.for_fd(child_rd_fd).close rescue nil
+
+          # Turn off nonblocking (Ruby 3 turns it on??)
+          fd = IO.for_fd(4)
+          flags = fd.fcntl(Fcntl::F_GETFL, 0)
+          if flags & Fcntl::O_NONBLOCK
+            flags = flags ^ Fcntl::O_NONBLOCK
+            fd.fcntl(Fcntl::F_SETFL, flags)
+          end
+
 
           f = File.open(job_path + "/stdio.log", "a")
           pfx = "#{Process.pid} - #{Time.now} -"
@@ -335,8 +357,17 @@ module RQ
           # Ruby 2.0 sets CLOEXEC by default, turn it off explicitly
           fd_3 = IO.for_fd(3)
           fd_4 = IO.for_fd(4)
+          flags = fd_3.fcntl(Fcntl::F_GETFL, 0)
+          $log.error("FLAGS for fd_3 : #{flags.to_s(16)}")
+          flags = fd_4.fcntl(Fcntl::F_GETFL, 0)
+          $log.error("FLAGS for fd_4 : #{flags.to_s(16)}")
           fd_3.fcntl(Fcntl::F_SETFD, fd_3.fcntl(Fcntl::F_GETFD, 0) & ~Fcntl::FD_CLOEXEC) rescue nil
           fd_4.fcntl(Fcntl::F_SETFD, fd_4.fcntl(Fcntl::F_GETFD, 0) & ~Fcntl::FD_CLOEXEC) rescue nil
+
+          flags = fd_3.fcntl(Fcntl::F_GETFL, 0)
+          $log.error("2FLAGS for fd_3 : #{flags.to_s(16)}")
+          flags = fd_4.fcntl(Fcntl::F_GETFL, 0)
+          $log.error("2FLAGS for fd_4 : #{flags.to_s(16)}")
 
           # Turn CLOEXEC explicitly on for all other likely open fds
           (5..32).each do |io|
@@ -1277,6 +1308,7 @@ module RQ
       $log.info("Running #{ready_msg['msg_id']} - delta #{delta}")
       # Looks like it is time to run now...
       run_job(ready_msg)
+
     end
 
     def run_loop
