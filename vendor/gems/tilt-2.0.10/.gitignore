@@ -1,0 +1,9 @@
+/dist
+*.swp
+/Gemfile.lock
+/vendor
+/.bundle
+/.yardoc
+/doc
+.sass-cache
+/man
