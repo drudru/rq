@@ -1,4 +1,6 @@
 
+  import { AnsiUp } from './ansi_up.js';
+
   var ansi = new AnsiUp();
 
   var CONTINUE_STATES = ["prep", "que", "run"];

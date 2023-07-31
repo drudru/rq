@@ -52,6 +52,8 @@ module RQ
     enable :static
     set :public_folder, './code/public'
 
+    mime_type :mjs, 'application/javascript'
+
     # Use the global Logger
     after do
       # Format adapted from Rack::CommonLogger
